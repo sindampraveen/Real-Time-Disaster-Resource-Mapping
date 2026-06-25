@@ -1,0 +1,835 @@
+import "./Header.css"
+import { NavLink } from "react-router-dom"
+const Header=()=>{
+    return(<>
+    <header>
+        <div id="brand-name"> <h1>Disaster Resource Mapping</h1></div>
+        <div className="components">
+            <NavLink to="/">Home</NavLink>
+            <NavLink to="/register">Register</NavLink>
+            <NavLink to="/login">Login</NavLink>
+        </div>
+    </header>
+    </>)
+}
+export default Header
+import "./Home.css"
+
+const Home=()=>{
+    return(<>
+        <main>
+            <h2 id="home-head">Welcome To Home Page</h2>
+            <div id="para-div1">
+               <p>Real-Time Disaster Resource Mapping with SOS Coordination and Volunteer Integration is a web-based platform designed to support people during natural or man-made disasters. The system helps users quickly find verified safe places with complete address and contact details, ensuring timely assistance during emergency situations.
+                </p>  
+              
+            </div>
+        </main>
+        <footer>
+             <h4>&copy; 2025 All Rights Reserved SAK Informatics</h4>
+        </footer>
+    </>)
+}
+export default Home
+import "./Register.css";
+import axios from "axios";
+import { useState } from "react";
+
+const Register = () => {
+  const [message, setMessage] = useState("");
+  const [msgType, setMsgType] = useState("");
+
+  const [form, setForm] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirm_password: "",
+    mobile: "",
+    address: "",
+  });
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const res = await axios.post(
+      "http://127.0.0.1:8000/api/register/",
+      form
+    );
+
+    if (res.data.error) {
+      setMsgType("error");
+      setMessage(res.data.error);
+    } else {
+      setMsgType("success");
+      setMessage(res.data.success);
+    }
+
+  } catch (err) {
+    setMsgType("error");
+    setMessage("Server error. Try again later.");
+  }
+};
+
+  return (
+    <>
+      <main>
+        <h2>Register</h2>
+
+        {message && <p className={`msg ${msgType}`}>{message}</p>}
+
+        <form onSubmit={handleSubmit}>
+          
+          <div className="row">
+            <label>Name:</label>
+            <input
+              type="text"
+              autoFocus
+              name="username"
+              placeholder="Enter User Name"
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="row">
+            <label>Email:</label>
+            <input
+              type="email"
+              name="email"
+              placeholder="Enter Email"
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="row">
+            <label>Password:</label>
+            <input
+              type="password"
+              name="password"
+              placeholder="Enter Password"
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="row">
+            <label>Confirm Password:</label>
+            <input
+              type="password"
+              name="confirm_password"
+              placeholder="Re-enter password"
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="row">
+            <label>Mobile Number:</label>
+           <input 
+                type="tel"
+                name="mobile"
+                inputMode="numeric" 
+                  maxLength="10"
+                pattern="[0-9]{10}"
+                title="Please enter exactly 10 digits"
+                placeholder="Enter mobile number"
+                onChange={handleChange}
+                required
+              />
+          </div>
+          <div className="row">
+            <label>Address:</label>
+            <textarea
+              name="address"
+              rows="2"
+              placeholder="Enter full address"
+              onChange={handleChange}
+              required
+            ></textarea>
+          </div>
+          <button id="btn-sub" type="submit">Submit</button>
+        </form>
+      </main>
+
+      <footer>
+        <h4>© 2025 All Rights Reserved SAK Informatics</h4>
+      </footer>
+    </>
+  );};
+export default Register;
+import "./Login.css";
+import axios from "axios";
+import { useState} from "react";
+import { useNavigate } from "react-router-dom";
+const Login = () => {
+  const navigate = useNavigate();
+  const [message, setMessage] = useState("");
+  const [msgType, setMsgType] = useState("");
+  const [data, setData] = useState({
+    username: "",
+    password: "",
+  });
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const res = await axios.post(
+      "http://127.0.0.1:8000/api/login/",
+      data
+    );
+    if (res.data.error && res.data.error.includes("not approved")) {
+      setMsgType("error");
+      setMessage("Awaiting admin approval");
+      return;
+    }
+    if (res.data.role === "admin") {
+      localStorage.setItem("username", res.data.username);
+      localStorage.setItem("role", "admin");
+      navigate("/admin");
+      return;
+    }
+    if (res.data.role === "user") {
+      localStorage.setItem("username", res.data.username);
+      localStorage.setItem("role", "user");
+      navigate("/user");
+      return;
+    }
+    setMsgType("error");
+    setMessage("Invalid Credentials");
+
+  } catch (err) {
+    setMsgType("error");
+    setMessage("Invalid username or password");
+  }
+};
+  return (
+    <>
+      <main>
+        <h2>Login</h2>
+
+        {message && (
+          <p className={`msg ${msgType}`} style={{textAlign:"center"}}>
+            {message}
+          </p>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div>
+            <label>Name:</label>
+            <input
+              name="username"
+              autoFocus
+              placeholder="Enter Username"
+              type="text"
+              onChange={(e) =>
+                setData({ ...data, username: e.target.value })
+              }
+              required
+            />
+          </div>
+
+          <div>
+            <label>Password:</label>
+            <input
+              name="password"
+              type="password"
+              placeholder="Enter Password"
+              onChange={(e) =>
+                setData({ ...data, password: e.target.value })
+              }
+              required
+            />
+          </div>
+
+          <button type="submit" id="log-btn">
+            Submit
+          </button>
+        </form>
+      </main>
+      <footer>
+        <h4>&copy; 2025 All Rights Reserved SAK Informatics</h4>
+      </footer>
+    </>
+  );
+};
+export default Login;
+import "./Admin.css";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { NavLink } from "react-router-dom";
+const Admin = () => {
+  const [users, setUsers] = useState([]);
+  const [safePlaces, setSafePlaces] = useState([]);
+
+  // section toggle: "", "users", "addSafe", "manageSafe"
+  const [section, setSection] = useState("");
+  const [place, setPlace] = useState({
+    name: "",
+    address: "",
+    contact: "",
+  });
+  const [isEdit, setIsEdit] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const loadUsers = async () => {
+    const res = await axios.get("http://127.0.0.1:8000/api/admin/user/");
+    setUsers(res.data.users || []);
+  };
+  const loadSafePlaces = async () => {
+    const res = await axios.get(
+      "http://127.0.0.1:8000/api/admin/safe-places/"
+    );
+    setSafePlaces(res.data.places || []);
+  };
+  useEffect(() => {
+    loadUsers();
+  }, []);
+  const approveUser = async (username) => {
+    const res = await axios.post(
+      "http://127.0.0.1:8000/api/approve/",
+      { username }
+    );
+    alert(res.data.success);
+    loadUsers();
+  };
+  const addSafePlace = async () => {
+    if (!place.name || !place.address || !place.contact) {
+      alert("All fields required");
+      return;
+    }
+
+    if (isEdit) {
+      // UPDATE
+      await axios.post(
+        "http://127.0.0.1:8000/api/admin/update-safe-place/",
+        {
+          id: editId,
+          name: place.name,
+          address: place.address,
+          contact: place.contact,
+        }
+      );
+      alert("Safe place updated");
+    } else {
+      // ADD
+      await axios.post(
+        "http://127.0.0.1:8000/api/admin/add-safe-place/",
+        place
+      );
+      alert("Safe place added");
+    }
+
+    // reset
+    setPlace({ name: "", address: "", contact: "" });
+    setIsEdit(false);
+    setEditId(null);
+    loadSafePlaces();
+    setSection("manageSafe");
+  };
+
+  return (
+    <>
+      <header>
+        <div id="brand-name">
+          <h1>Disaster Resource Mapping</h1>
+        </div>
+
+        <div className="components">
+          <NavLink to="/">Home</NavLink>
+          <button
+            id="details-btn"
+            onClick={() => setSection(section === "users" ? "" : "users")}
+          >
+            User Details
+          </button>
+          <button
+            id="details-btn"
+            onClick={() => {
+              setIsEdit(false);
+              setPlace({ name: "", address: "", contact: "" });
+              setSection(section === "addSafe" ? "" : "addSafe");
+            }}
+          >
+            Add Safe Place
+          </button>
+          <button
+            id="details-btn"
+            onClick={() => {
+              if (section === "manageSafe") {
+                setSection("");
+              } else {
+                setSection("manageSafe");
+                loadSafePlaces();
+              }
+            }}
+          >
+            Manage Safe Places
+          </button>
+
+          <NavLink to="/login">Logout</NavLink>
+        </div>
+      </header>
+
+      <main>
+        <h2>Admin Dashboard</h2>
+        {section === "users" && (
+          <table id="admin-table" border="1">
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Mobile</th>
+                <th>Approved</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u, i) => (
+                <tr key={i}>
+                  <td>{u.username}</td>
+                  <td>{u.email}</td>
+                  <td>{u.mobile}</td>
+                  <td>{u.approved === 1 ? "Yes" : "No"}</td>
+                  <td>
+                    {u.approved === 0 ? (
+                      <button
+                        id="approve-btn"
+                        onClick={() => approveUser(u.username)}
+                      >
+                        Approve
+                      </button>
+                    ) : (
+                      "Approved"
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        {section === "addSafe" && (
+          <div id="admin-form">
+            <h3 style={{ textAlign: "center", paddingTop: "1.5rem" }}>
+              {isEdit ? "Edit Safe Place" : "Add Safe Place"}
+            </h3>
+
+            <input
+              type="text"
+              placeholder="Safe Place Name"
+              value={place.name}
+              onChange={(e) =>
+                setPlace({ ...place, name: e.target.value })
+              }
+            />
+            <textarea
+              placeholder="Complete Address"
+              value={place.address}
+              onChange={(e) =>
+                setPlace({ ...place, address: e.target.value })
+              }
+            />
+            <input
+              type="text"
+              placeholder="Contact Number"
+              value={place.contact}
+              onChange={(e) =>
+                setPlace({ ...place, contact: e.target.value })
+              }
+            />
+            <button id="approve-btn5" onClick={addSafePlace}>
+              {isEdit ? "Update" : "Save"}
+            </button>
+          </div>
+        )}
+        {section === "manageSafe" && (
+          <table id="admin-table" border="1">
+            <thead>
+              <tr>
+                <th>Safe Place</th>
+                <th>Addres</th>
+                <th>Contact</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {safePlaces.map((s, i) => (
+                <tr key={i}>
+                  <td>{s.name}</td>
+                  <td>{s.address}</td>
+                  <td>{s.contact}</td>
+                  <td>
+                    <button
+                      id="approve-btn5"
+                      onClick={() => {
+                        setPlace({
+                          name: s.name,
+                          address: s.address,
+                          contact: s.contact,
+                        });
+                        setEditId(s.id);
+                        setIsEdit(true);
+                        setSection("addSafe");
+                      }}
+                    >
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </main>
+      <footer>
+        <h4>© 2025 All Rights Reserved SAK Informatics</h4>
+      </footer>
+    </>
+  );
+};
+
+export default Admin;
+import "./User.css";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { NavLink } from "react-router-dom";
+const User = () => {
+  const [user, setUser] = useState(null);
+  const [safePlaces, setSafePlaces] = useState([]);
+  const [section, setSection] = useState("none");
+  const loadUser = async () => {
+    const username = localStorage.getItem("username");
+
+    const res = await axios.get(
+      `http://127.0.0.1:8000/api/user/details/?username=${username}`
+    );
+    setUser(res.data.user);
+  };
+  const loadSafePlaces = async () => {
+    const res = await axios.get(
+      "http://127.0.0.1:8000/api/admin/safe-places/"
+    );
+    setSafePlaces(res.data.places || []);
+  };
+  useEffect(() => {
+    loadUser();
+    loadSafePlaces();
+  }, []);
+  return (
+    <>
+      <header>
+        <div id="brand-name">
+          <h1>Disaster Resource Mapping</h1>
+        </div>
+        <div className="components">
+          <NavLink to="/">Home</NavLink>
+          <button
+            id="details-btn"
+            onClick={() =>
+              setSection(section === "profile" ? "none" : "profile")
+            }
+          >
+            My Profile
+          </button>
+
+          <button
+            id="details-btn"
+            onClick={() =>
+              setSection(section === "safe" ? "none" : "safe")
+            }
+          >
+            Safe Places
+          </button>
+          <NavLink to="/login">Logout</NavLink>
+        </div>
+      </header>
+      <main>
+        <h2>User Dashboard</h2>
+        {section === "profile" && user && (
+          <div className="section-box">
+            <h3 className="text-center">Your Profile</h3>
+
+            <table border="1" id="admin-table">
+              <tbody>
+                <tr>
+                  <th>Username</th>
+                  <td>{user.username}</td>
+                </tr>
+                <tr>
+                  <th>Email</th>
+                  <td>{user.email}</td>
+                </tr>
+                <tr>
+                  <th>Mobile</th>
+                  <td>{user.mobile}</td>
+                </tr>
+                <tr>
+                  <th>Address</th>
+                  <td>{user.address}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+        {section === "safe" && (
+          <div className="section-box">
+            <h3 className="text-center">Available Safe Places</h3>
+            <table border="1" id="admin-table">
+              <thead>
+                <tr>
+                  <th>Safe Place</th>
+                  <th>Complete Address</th>
+                  <th>Contact Number</th>
+                </tr>
+              </thead>
+              <tbody>
+                {safePlaces.length === 0 ? (
+                  <tr>
+                    <td colSpan="3">No safe places available</td>
+                  </tr>
+                ) : (
+                  safePlaces.map((s, i) => (
+                    <tr key={i}>
+                      <td>{s.name}</td>
+                      <td>{s.address}</td>
+                      <td>{s.contact}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </main>
+      <footer>
+        <h4>© 2025 All Rights Reserved SAK Informatics</h4>
+      </footer>
+    </>
+  );
+};
+
+export default User;
+import './App.css'
+import {Routes,Route,useLocation} from "react-router-dom"
+import Header from './Components/Header'
+import Home from './Components/Home'
+import Register from './Components/Register'
+import Login from './Components/Login'
+import User from './Components/User'
+import Admin from './Components/Admin'
+function App() {
+  const location = useLocation();
+  const hideHeaderRoutes = ["/admin", "/user"];
+  return (<>
+      {!hideHeaderRoutes.includes(location.pathname) && <Header/>}
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/admin" element={<Admin/> }/>
+      <Route path="/user" element={ <User/>}/> 
+    </Routes> 
+  </>   
+  )
+}
+export default App
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+import pymysql
+def get_db_connection():
+    return pymysql.connect(
+        host='127.0.0.1',
+        user='root',
+        password='root',
+        database='webdb8',
+        cursorclass=pymysql.cursors.DictCursor
+    )
+def ensure_single_admin():
+    try:
+        con = get_db_connection()
+        with con:
+            cur = con.cursor()
+            cur.execute("SELECT id FROM users1 WHERE role='admin'")
+            admin = cur.fetchone()
+            if not admin:
+                cur.execute("""
+                    INSERT INTO users1
+                    (username, email, password, mobile, address, role, approved)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s)
+                """, (
+                    "admin",
+                    "admin@gmail.com",
+                    "admin",
+                    "1234567890",
+                    "Hyderabad",
+                    "admin",
+                    1
+                ))
+                con.commit()
+    except Exception as e:
+        print("Admin Error:", e)
+@api_view(["POST"])
+def register_api(request):
+    username = request.data.get("username")
+    email = request.data.get("email")
+    password = request.data.get("password")
+    confirm = request.data.get("confirm_password")
+    mobile = request.data.get("mobile")
+    address = request.data.get("address")
+    role ="user"# user or client
+
+    if password != confirm:
+        return Response({"error": "Passwords do not match"})
+    try:
+        con = get_db_connection()
+        with con:
+            cur = con.cursor()
+            # Check duplicates
+            cur.execute("SELECT username FROM users1 WHERE username=%s", (username,))
+            if cur.fetchone():
+                return Response({"error": "Username already exists"})
+            cur.execute("SELECT email FROM users1 WHERE email=%s", (email,))
+            if cur.fetchone():
+                return Response({"error": "Email already exists"})
+            cur.execute("SELECT mobile FROM users1 WHERE mobile=%s", (mobile,))
+            if cur.fetchone():
+                return Response({"error": "Mobile already exists"})
+            cur.execute("""
+                INSERT INTO users1
+                (username, email, password, role, approved, mobile, address)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (username, email, password, role, 0, mobile, address))
+            con.commit()
+            return Response({"success": "Account created. Awaiting admin approval"})
+    except Exception as e:
+        return Response({"error": "Database error: " + str(e)})
+# LOGIN
+@api_view(["POST"])
+def login_api(request):
+    ensure_single_admin()
+    username = request.data.get("username")
+    password = request.data.get("password")
+    con = get_db_connection()
+    with con:
+        cur = con.cursor()
+        cur.execute(
+            "SELECT * FROM users1 WHERE username=%s AND password=%s",
+            (username, password)
+        )
+        user = cur.fetchone()
+    if not user:
+        return Response({"error": "Invalid login credentials"})
+    if user["approved"] == 0:
+        return Response({"error": "Account not approved yet"})
+    return Response({
+        "success": "Login successful",
+        "username": user["username"],
+        "role": user["role"]
+    })
+# Admin: View all user
+@api_view(["GET"])
+def admin_user_api(request):
+    con = get_db_connection()
+    with con:
+        cur = con.cursor()
+        cur.execute("SELECT * FROM users1 WHERE role='user'")
+        users = cur.fetchall()
+    return Response({"users": users})  
+# Admin: Approve any user (user or client)
+@api_view(["POST"])
+def approve_user_api(request):
+    username = request.data.get("username")
+    try:
+        con = get_db_connection()
+        with con:
+            cur = con.cursor()
+            cur.execute("UPDATE users1 SET approved=1 WHERE username=%s", (username,))
+            con.commit()
+        return Response({"success": "user approved successfully"})
+    except Exception as e:
+        return Response({"error": str(e)})
+@api_view(["GET"])
+def user_details_api(request):
+    username = request.GET.get("username")
+    try:
+        con = get_db_connection()
+        with con:
+            cur = con.cursor()
+            cur.execute("SELECT * FROM users1 WHERE username=%s", (username,))
+            user = cur.fetchone()
+        return Response({"user": user})
+
+    except Exception as e:
+        return Response({"error": str(e)})
+@api_view(["GET"])
+def user_page_api(request):
+    username = request.GET.get("username")
+    if not username:
+        return Response({"error": "user required"})
+    return Response({"success": "user page loaded", "username": username})
+@api_view(["POST"])
+def add_safe_place_api(request):
+    name = request.data.get("name")
+    address = request.data.get("address")
+    contact = request.data.get("contact")
+    if not all([name, address, contact]):
+        return Response({"error": "All fields required"})
+    con = get_db_connection()
+    with con:
+        cur = con.cursor()
+        cur.execute("""
+            INSERT INTO safe_places (name, address, contact)
+            VALUES (%s,%s,%s)
+        """, (name, address, contact))
+        con.commit()
+    return Response({"success": "Safe place added"})
+@api_view(["POST"])
+def update_safe_place_api(request):
+    place_id = request.data.get("id")
+    name = request.data.get("name")
+    address = request.data.get("address")
+    contact = request.data.get("contact")
+    con = get_db_connection()
+    with con:
+        cur = con.cursor()
+        cur.execute("""
+            UPDATE safe_places
+            SET name=%s, address=%s, contact=%s
+            WHERE id=%s
+        """, (name, address, contact, place_id))
+        con.commit()
+    return Response({"success": "Safe place updated"})
+@api_view(["GET"])
+def view_safe_places_api(request):
+    con = get_db_connection()
+    with con:
+        cur = con.cursor(pymysql.cursors.DictCursor)
+        cur.execute("SELECT * FROM safe_places")
+        places = cur.fetchall()
+    return Response({"places": places})
+create database webdb8;
+use webdb8;
+CREATE TABLE users1 (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL,
+    mobile VARCHAR(20) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    role ENUM('admin', 'user') NOT NULL DEFAULT 'user',
+    approved TINYINT(1) DEFAULT 0
+);
+CREATE TABLE safe_places (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100),
+    address VARCHAR(255),
+    contact VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+Select * from users1;
+Select * from safe_places;
